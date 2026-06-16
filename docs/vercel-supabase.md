@@ -1,6 +1,6 @@
 # Vercel + Supabase 연결 가이드
 
-현재 프로토타입은 정적 `index.html + app.js` 구조입니다. Vercel에 정적 배포는 가능하지만, Supabase 환경변수를 안전하고 편하게 쓰려면 Vite 또는 Next.js로 전환하는 것이 좋습니다.
+현재 프로토타입은 Vite 앱입니다. Vercel에서는 `Vite` 프리셋을 선택하면 되고, Supabase 연결값은 Vercel 환경변수로 등록합니다.
 
 ## 1. DB 구조 적용
 
@@ -155,9 +155,13 @@ const { error } = await supabase
 
 ## 8. 현재 정적 프로토타입에서 필요한 전환
 
-현재 구조를 그대로 두면 Vercel 환경변수가 `app.js`에 자동 주입되지 않습니다. 운영 연결 전에는 아래 중 하나로 바꾸는 것을 권장합니다.
+현재 코드는 `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_ORG_SLUG`를 읽습니다.
 
-- 빠른 전환: Vite로 바꾸고 `app.js`를 ES module로 전환
-- 운영 권장: Next.js로 바꾸고 농가/관리자 화면을 라우트로 분리
+환경변수가 없으면 기존 목업 데이터로 동작합니다. 환경변수가 있으면:
 
-운영 우선순위는 `Vite 전환 -> Supabase 조회/제출 연결 -> 관리자 로그인 -> RLS 정책 검증 -> Vercel 배포` 순서가 좋습니다.
+- 농가/품목 목록은 Supabase `farms`, `crops`에서 조회
+- 농가 제출은 `submit_farmer_shipment` RPC 호출
+- 관리자 데이터표는 `v_shipment_sheet` 조회
+- 관리자 셀 수정은 `shipments` 또는 `shipment_grade_estimates`에 저장
+
+남은 운영 작업은 관리자 로그인 UI 추가와 RLS 정책 검증입니다.

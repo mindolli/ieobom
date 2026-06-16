@@ -1,0 +1,16 @@
+{
+  "name": "ieobom-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.87.1",
+    "vite": "^7.3.0"
+  },
+  "devDependencies": {}
+}

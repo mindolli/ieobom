@@ -1,3 +1,12 @@
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_ORG_SLUG = import.meta.env.VITE_SUPABASE_ORG_SLUG || "saebom";
+const supabase = SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
+  ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+  : null;
+
 const icons = {
   grid: '<rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/>',
   flow: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6h7M18 8.5v7M15.5 18H8a2 2 0 0 1-2-2V9"/>',
@@ -29,7 +38,7 @@ const issues = [
   { id: 5, stage: "배분", farmer: "최은경 농가", crop: "완숙토마토", issue: "상 등급 12박스의 출하처가 없어요.", type: "미배분", className: "unassigned", details: [["등급", "상"], ["확정 수량", "12박스"], ["출하처", "미배분"]] }
 ];
 
-const shipments = [
+const fallbackShipments = [
   { id: 101, farmer: "김성호 농가", date: "2026-06-18", crop: "방울토마토", total: 40, special: 10, high: 20, normal: 10, method: "자가입고", time: "오전 9시", phone: "010-2481-0324", status: "확인 완료", memo: "" },
   { id: 102, farmer: "박영자 농가", date: "2026-06-18", crop: "완숙토마토", total: 28, special: 8, high: 12, normal: 8, method: "수거 요청", time: "오전 9시", phone: "010-3842-1107", status: "확인 필요", memo: "수거 위치 확인" },
   { id: 103, farmer: "이재훈 농가", date: "2026-06-18", crop: "방울토마토", total: 36, special: 8, high: 20, normal: 8, method: "자가입고", time: "오전 10시", phone: "010-9071-2420", status: "확인 완료", memo: "" },
@@ -37,6 +46,20 @@ const shipments = [
   { id: 105, farmer: "정미숙 농가", date: "2026-06-18", crop: "대추방울", total: 32, special: 7, high: 15, normal: 10, method: "자가입고", time: "오후 1시", phone: "010-4410-8325", status: "확인 필요", memo: "등급 수량 재확인" },
   { id: 106, farmer: "오세진 농가", date: "2026-06-18", crop: "완숙토마토", total: 30, special: 6, high: 14, normal: 10, method: "자가입고", time: "오후 1시", phone: "010-2194-5578", status: "확인 완료", memo: "" },
   { id: 107, farmer: "한정희 농가", date: "2026-06-18", crop: "방울토마토", total: 42, special: 12, high: 20, normal: 10, method: "수거 요청", time: "오후 2시", phone: "010-7832-6021", status: "미확인", memo: "" }
+];
+
+let shipments = [...fallbackShipments];
+let farmOptions = [
+  { id: "김성호 농가", name: "김성호 농가", phone: "010-2481-0324" },
+  { id: "박영자 농가", name: "박영자 농가", phone: "010-3842-1107" },
+  { id: "이재훈 농가", name: "이재훈 농가", phone: "010-9071-2420" },
+  { id: "최은경 농가", name: "최은경 농가", phone: "010-6628-1049" },
+  { id: "정미숙 농가", name: "정미숙 농가", phone: "010-4410-8325" }
+];
+let cropOptions = [
+  { id: "방울토마토", name: "방울토마토" },
+  { id: "완숙토마토", name: "완숙토마토" },
+  { id: "대추방울", name: "대추방울" }
 ];
 
 let activeFilter = "all";
@@ -237,6 +260,122 @@ const sheetFields = [
   ["memo", "메모"]
 ];
 
+function statusToLabel(status) {
+  const labels = {
+    submitted: "미확인",
+    needs_check: "확인 필요",
+    confirmed: "확인 완료",
+    arrived: "확인 완료",
+    sorted: "확인 완료",
+    allocated: "확인 완료",
+    settlement_ready: "확인 완료",
+    settled: "확인 완료",
+    held: "확인 필요"
+  };
+  return labels[status] || status || "미확인";
+}
+
+function labelToStatus(label) {
+  const statuses = {
+    "미확인": "submitted",
+    "확인 필요": "needs_check",
+    "확인 완료": "confirmed"
+  };
+  return statuses[label] || "submitted";
+}
+
+function methodToLabel(method) {
+  if (method === "self_delivery") return "자가입고";
+  if (method === "pickup_request") return "수거 요청";
+  return method || "";
+}
+
+function labelToMethod(label) {
+  return label === "수거 요청" ? "pickup_request" : "self_delivery";
+}
+
+function timeToLabel(time) {
+  if (!time) return "";
+  const [hourText] = String(time).split(":");
+  const hour = Number(hourText);
+  if (Number.isNaN(hour)) return time;
+  return `${hour < 12 ? "오전" : "오후"} ${hour > 12 ? hour - 12 : hour}시`;
+}
+
+function labelToTime(label) {
+  const match = String(label || "").match(/(오전|오후)\s*(\d+)시/);
+  if (!match) return label || null;
+  let hour = Number(match[2]);
+  if (match[1] === "오후" && hour < 12) hour += 12;
+  return `${String(hour).padStart(2, "0")}:00`;
+}
+
+function mapSheetRow(row) {
+  return {
+    id: row.id,
+    farmer: row.farm_name,
+    date: row.shipment_date,
+    crop: row.crop_name,
+    total: Number(row.total_boxes || 0),
+    special: Number(row.special_boxes || 0),
+    high: Number(row.high_boxes || 0),
+    normal: Number(row.normal_boxes || 0),
+    method: methodToLabel(row.arrival_method),
+    time: timeToLabel(row.requested_arrival_time),
+    phone: row.contact_phone || row.farm_phone || "",
+    status: statusToLabel(row.status),
+    memo: row.farmer_memo || row.manager_memo || ""
+  };
+}
+
+function populateSubmissionOptions() {
+  const farmerSelect = document.querySelector("#farmerName");
+  const cropSelect = document.querySelector("#shipmentCrop");
+  const farmerMarkup = '<option value="">농가를 선택해주세요</option>' +
+    farmOptions.map((farm) => `<option value="${farm.id}" data-phone="${farm.phone || ""}">${farm.name}</option>`).join("");
+  const cropMarkup = '<option value="">품목을 선택해주세요</option>' +
+    cropOptions.map((crop) => `<option value="${crop.id}">${crop.name}</option>`).join("");
+  farmerSelect.innerHTML = farmerMarkup;
+  cropSelect.innerHTML = cropMarkup;
+}
+
+function getSelectedOptionText(select) {
+  return select.options[select.selectedIndex]?.textContent || "";
+}
+
+async function loadSupabaseData() {
+  if (!supabase) {
+    populateSubmissionOptions();
+    return;
+  }
+
+  const [{ data: farms, error: farmsError }, { data: crops, error: cropsError }, { data: rows, error: rowsError }] = await Promise.all([
+    supabase.from("farms").select("id,name,phone").eq("is_active", true).order("name"),
+    supabase.from("crops").select("id,name").eq("is_active", true).order("name"),
+    supabase.from("v_shipment_sheet").select("*").order("created_at", { ascending: false })
+  ]);
+
+  if (farmsError || cropsError) {
+    showToast("Supabase 농가/품목을 불러오지 못해 목업 데이터를 사용합니다.");
+    populateSubmissionOptions();
+    return;
+  }
+
+  farmOptions = farms.map((farm) => ({ id: farm.id, name: farm.name, phone: farm.phone || "" }));
+  cropOptions = crops.map((crop) => ({ id: crop.id, name: crop.name }));
+  populateSubmissionOptions();
+
+  if (rowsError) {
+    showToast("관리자 데이터는 로그인 후 Supabase에서 불러올 수 있습니다.");
+    return;
+  }
+
+  shipments = rows.map(mapSheetRow);
+  if (document.querySelector("#sheetView") && !document.querySelector("#sheetView").classList.contains("hidden")) {
+    renderSheet();
+  }
+}
+
 function filteredShipments() {
   return shipments.filter((item) => {
     const matchesText = !sheetSearchTerm || `${item.farmer} ${item.crop}`.toLowerCase().includes(sheetSearchTerm);
@@ -305,23 +444,83 @@ function selectSheetCell(cell) {
   document.querySelector("#formulaInput").value = cell.innerText.trim();
 }
 
-function updateSheetCell(cell) {
+async function updateSheetCell(cell) {
   const shipment = shipments.find((item) => item.id === Number(cell.closest("tr").dataset.shipmentId));
-  if (!shipment || cell.dataset.field === "status") return;
+  const rawId = cell.closest("tr").dataset.shipmentId;
+  const localShipment = shipments.find((item) => String(item.id) === rawId);
+  const target = localShipment || shipment;
+  if (!target || cell.dataset.field === "status") return;
   const numericFields = ["total", "special", "high", "normal"];
-  shipment[cell.dataset.field] = numericFields.includes(cell.dataset.field)
+  target[cell.dataset.field] = numericFields.includes(cell.dataset.field)
     ? Number(cell.innerText.replace(/[^\d.-]/g, "") || 0)
     : cell.innerText.trim();
   renderSheet();
-  showToast("셀 수정 내용이 자동 저장됐습니다.");
+  const saved = await syncSheetCellToSupabase(target, cell.dataset.field);
+  showToast(saved ? "셀 수정 내용이 Supabase에 저장됐습니다." : "셀 수정 내용이 화면에 저장됐습니다.");
 }
 
-function cycleSheetStatus(cell) {
-  const shipment = shipments.find((item) => item.id === Number(cell.closest("tr").dataset.shipmentId));
+async function cycleSheetStatus(cell) {
+  const shipment = shipments.find((item) => String(item.id) === cell.closest("tr").dataset.shipmentId);
   if (!shipment) return;
   const statuses = ["미확인", "확인 필요", "확인 완료"];
   shipment.status = statuses[(statuses.indexOf(shipment.status) + 1) % statuses.length];
   renderSheet();
+  await syncSheetCellToSupabase(shipment, "status");
+}
+
+async function syncSheetCellToSupabase(shipment, field) {
+  if (!supabase) return false;
+
+  const shipmentUpdates = {
+    date: { shipment_date: shipment.date },
+    total: { total_boxes: Number(shipment.total || 0) },
+    method: { arrival_method: labelToMethod(shipment.method) },
+    time: { requested_arrival_time: labelToTime(shipment.time) },
+    phone: { contact_phone: shipment.phone },
+    memo: { farmer_memo: shipment.memo },
+    status: { status: labelToStatus(shipment.status) }
+  };
+
+  if (field === "farmer") {
+    const farm = farmOptions.find((item) => item.name === shipment.farmer);
+    if (farm) shipmentUpdates.farmer = { farm_id: farm.id };
+  }
+
+  if (field === "crop") {
+    const crop = cropOptions.find((item) => item.name === shipment.crop);
+    if (crop) shipmentUpdates.crop = { crop_id: crop.id };
+  }
+
+  if (["special", "high", "normal"].includes(field)) {
+    const gradeCode = { special: "special", high: "high", normal: "normal" }[field];
+    const { error } = await supabase
+      .from("shipment_grade_estimates")
+      .upsert({
+        shipment_id: shipment.id,
+        grade_code: gradeCode,
+        boxes: Number(shipment[field] || 0)
+      }, { onConflict: "shipment_id,grade_code" });
+    if (error) {
+      showToast(`Supabase 저장 실패: ${error.message}`);
+      return false;
+    }
+    return true;
+  }
+
+  const payload = shipmentUpdates[field];
+  if (!payload) return false;
+
+  const { error } = await supabase
+    .from("shipments")
+    .update(payload)
+    .eq("id", shipment.id);
+
+  if (error) {
+    showToast(`Supabase 저장 실패: ${error.message}`);
+    return false;
+  }
+
+  return true;
 }
 
 document.querySelector("#sheetSearch").addEventListener("input", (event) => {
@@ -363,6 +562,11 @@ const farmerForm = document.querySelector("#farmerShipmentForm");
 const totalQuantity = document.querySelector("#totalQuantity");
 const gradeInputs = ["#gradeSpecial", "#gradeHigh", "#gradeNormal"].map((selector) => document.querySelector(selector));
 
+document.querySelector("#farmerName").addEventListener("change", (event) => {
+  const phone = event.target.options[event.target.selectedIndex]?.dataset.phone;
+  if (phone) document.querySelector("#farmerPhone").value = phone;
+});
+
 function checkGradeTotal() {
   const gradeTotal = gradeInputs.reduce((sum, input) => sum + Number(input.value || 0), 0);
   const total = Number(totalQuantity.value || 0);
@@ -384,21 +588,52 @@ document.querySelectorAll("[data-quantity]").forEach((button) => {
 totalQuantity.addEventListener("input", checkGradeTotal);
 gradeInputs.forEach((input) => input.addEventListener("input", checkGradeTotal));
 
-farmerForm.addEventListener("submit", (event) => {
+farmerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const farmer = document.querySelector("#farmerName").value;
-  const crop = document.querySelector("#shipmentCrop").value;
+  const farmerSelect = document.querySelector("#farmerName");
+  const cropSelect = document.querySelector("#shipmentCrop");
+  const farmer = getSelectedOptionText(farmerSelect);
+  const crop = getSelectedOptionText(cropSelect);
   const total = Number(totalQuantity.value);
   const gradeMatches = checkGradeTotal();
+  const gradeBoxes = {
+    special: Number(document.querySelector("#gradeSpecial").value || 0),
+    high: Number(document.querySelector("#gradeHigh").value || 0),
+    normal: Number(document.querySelector("#gradeNormal").value || 0)
+  };
+  let savedShipmentId = Date.now();
+
+  if (supabase) {
+    const { data, error } = await supabase.rpc("submit_farmer_shipment", {
+      p_org_slug: SUPABASE_ORG_SLUG,
+      p_farm_id: farmerSelect.value,
+      p_crop_id: cropSelect.value,
+      p_shipment_date: document.querySelector("#shipmentDate").value,
+      p_total_boxes: total,
+      p_grade_boxes: gradeBoxes,
+      p_arrival_method: labelToMethod(document.querySelector('input[name="arrivalMethod"]:checked').value),
+      p_requested_arrival_time: labelToTime(document.querySelector("#arrivalTime").value),
+      p_contact_phone: document.querySelector("#farmerPhone").value,
+      p_farmer_memo: document.querySelector("#farmerMemo").value
+    });
+
+    if (error) {
+      showToast(`Supabase 제출 실패: ${error.message}`);
+      return;
+    }
+
+    savedShipmentId = data;
+  }
+
   const newShipment = {
-    id: Date.now(),
+    id: savedShipmentId,
     farmer,
     date: document.querySelector("#shipmentDate").value,
     crop,
     total,
-    special: Number(document.querySelector("#gradeSpecial").value || 0),
-    high: Number(document.querySelector("#gradeHigh").value || 0),
-    normal: Number(document.querySelector("#gradeNormal").value || 0),
+    special: gradeBoxes.special,
+    high: gradeBoxes.high,
+    normal: gradeBoxes.normal,
     method: document.querySelector('input[name="arrivalMethod"]:checked').value,
     time: document.querySelector("#arrivalTime").value,
     phone: document.querySelector("#farmerPhone").value,
@@ -409,6 +644,7 @@ farmerForm.addEventListener("submit", (event) => {
   newestShipmentId = newShipment.id;
   document.querySelector("#successSummary").textContent = `${farmer} · ${crop} ${total}박스 · ${newShipment.time}`;
   document.querySelector("#submissionSuccess").classList.remove("hidden");
+  if (supabase) loadSupabaseData();
 });
 
 document.querySelector("#checkAdminSheet").addEventListener("click", () => {
@@ -446,3 +682,4 @@ document.addEventListener("keydown", (event) => {
 });
 
 renderIssues();
+loadSupabaseData();

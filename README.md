@@ -4,15 +4,21 @@
 
 ## 실행
 
-별도 빌드나 패키지 설치 없이 `index.html`을 브라우저에서 열 수 있습니다.
+Vercel/Supabase 연결을 위해 Vite 앱으로 구성했습니다.
 
-로컬 서버를 사용하려면:
+처음 한 번:
 
 ```bash
-python3 -m http.server 4173
+npm install
 ```
 
-이후 `http://localhost:4173`에서 확인합니다.
+로컬 실행:
+
+```bash
+npm run dev
+```
+
+이후 터미널에 표시되는 localhost 주소에서 확인합니다.
 
 ## Supabase / Vercel 연결
 
@@ -20,7 +26,7 @@ python3 -m http.server 4173
 - 샘플 데이터: [supabase/seed.sql](/Users/anminju/Documents/스온실/supabase/seed.sql)
 - 연결 가이드: [docs/vercel-supabase.md](/Users/anminju/Documents/스온실/docs/vercel-supabase.md)
 
-현재 프로토타입은 정적 HTML 구조이므로 Vercel 환경변수를 바로 읽지 못합니다. Supabase 운영 연결 전에는 Vite 또는 Next.js로 전환하는 것을 권장합니다.
+Vercel에서는 Application/Framework Preset을 `Vite`로 선택하세요.
 
 ## 포함된 상호작용
 
