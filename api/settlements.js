@@ -1,4 +1,4 @@
-import { getSupabaseAdmin, handleOptions, requireApiKey, sendJson } from "./_shared.js";
+import { getSupabaseAdmin, getSupabaseConfigStatus, handleOptions, requireApiKey, sendJson } from "./_shared.js";
 
 const mockSettlement = {
   farm_name: "김성호 농가",
@@ -19,6 +19,16 @@ export default async function handler(req, res) {
 
   const supabase = getSupabaseAdmin();
   if (!supabase) {
+    const config = getSupabaseConfigStatus();
+    if (config.hasUrl && !config.hasServerKey) {
+      return sendJson(res, 500, {
+        error: {
+          code: "supabase_server_key_missing",
+          message: "Vercel 환경변수에 SUPABASE_SECRET_KEY 또는 SUPABASE_SERVICE_ROLE_KEY가 필요합니다."
+        },
+        config
+      });
+    }
     return sendJson(res, 200, { data: [mockSettlement], meta: { count: 1, source: "mock" } });
   }
 

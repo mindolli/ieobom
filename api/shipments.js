@@ -1,4 +1,4 @@
-import { getSupabaseAdmin, handleOptions, parseBody, requireApiKey, sendJson } from "./_shared.js";
+import { getSupabaseAdmin, getSupabaseConfigStatus, handleOptions, parseBody, requireApiKey, sendJson } from "./_shared.js";
 
 const mockShipment = {
   shipment_id: "mock_shipment_001",
@@ -20,6 +20,16 @@ export default async function handler(req, res) {
 
   if (req.method === "GET") {
     if (!supabase) {
+      const config = getSupabaseConfigStatus();
+      if (config.hasUrl && !config.hasServerKey) {
+        return sendJson(res, 500, {
+          error: {
+            code: "supabase_server_key_missing",
+            message: "Vercel 환경변수에 SUPABASE_SECRET_KEY 또는 SUPABASE_SERVICE_ROLE_KEY가 필요합니다."
+          },
+          config
+        });
+      }
       return sendJson(res, 200, { data: [mockShipment], meta: { count: 1, source: "mock" } });
     }
 
@@ -41,6 +51,16 @@ export default async function handler(req, res) {
     const body = parseBody(req);
 
     if (!supabase) {
+      const config = getSupabaseConfigStatus();
+      if (config.hasUrl && !config.hasServerKey) {
+        return sendJson(res, 500, {
+          error: {
+            code: "supabase_server_key_missing",
+            message: "Vercel 환경변수에 SUPABASE_SECRET_KEY 또는 SUPABASE_SERVICE_ROLE_KEY가 필요합니다."
+          },
+          config
+        });
+      }
       return sendJson(res, 201, {
         shipment_id: "mock_created_shipment",
         status: "submitted",
@@ -50,10 +70,23 @@ export default async function handler(req, res) {
       });
     }
 
+    const orgSlug = body.org_slug || "saebom";
+    const farmId = body.farm_id || await resolveIdByName(supabase, "farms", orgSlug, body.farm_name);
+    const cropId = body.crop_id || await resolveIdByName(supabase, "crops", orgSlug, body.crop_name);
+
+    if (!farmId || !cropId) {
+      return sendJson(res, 400, {
+        error: {
+          code: "missing_farm_or_crop",
+          message: "farm_id/crop_id 또는 farm_name/crop_name이 필요합니다."
+        }
+      });
+    }
+
     const { data, error } = await supabase.rpc("submit_farmer_shipment", {
-      p_org_slug: body.org_slug || "saebom",
-      p_farm_id: body.farm_id,
-      p_crop_id: body.crop_id,
+      p_org_slug: orgSlug,
+      p_farm_id: farmId,
+      p_crop_id: cropId,
       p_shipment_date: body.shipment_date,
       p_total_boxes: body.total_boxes,
       p_grade_boxes: body.grade_boxes || {},
@@ -73,4 +106,18 @@ export default async function handler(req, res) {
   }
 
   return sendJson(res, 405, { error: { code: "method_not_allowed", message: "GET 또는 POST만 지원합니다." } });
+}
+
+async function resolveIdByName(supabase, table, orgSlug, name) {
+  if (!name) return null;
+
+  const { data, error } = await supabase
+    .from(table)
+    .select("id, organizations!inner(slug)")
+    .eq("name", name)
+    .eq("organizations.slug", orgSlug)
+    .maybeSingle();
+
+  if (error) return null;
+  return data?.id || null;
 }

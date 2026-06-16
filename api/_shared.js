@@ -23,6 +23,8 @@ export function requireApiKey(req, res) {
   const token = header.replace(/^Bearer\s+/i, "");
   if (token === expected) return true;
 
+  if (!header && isSameOriginBrowserRequest(req)) return true;
+
   setCors(res);
   res.status(401).json({
     error: {
@@ -33,11 +35,39 @@ export function requireApiKey(req, res) {
   return false;
 }
 
+function isSameOriginBrowserRequest(req) {
+  const fetchSite = req.headers["sec-fetch-site"];
+  if (fetchSite === "same-origin" || fetchSite === "same-site") return true;
+
+  const host = req.headers.host;
+  const referer = req.headers.referer;
+  if (!host || !referer) return false;
+
+  try {
+    return new URL(referer).host === host;
+  } catch {
+    return false;
+  }
+}
+
 export function getSupabaseAdmin() {
   const url = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SECRET_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
-  return createClient(url, key);
+  return createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false
+    }
+  });
+}
+
+export function getSupabaseConfigStatus() {
+  return {
+    hasUrl: Boolean(process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL),
+    hasServerKey: Boolean(process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY),
+    hasExternalApiKey: Boolean(process.env.EXTERNAL_API_KEY)
+  };
 }
 
 export function sendJson(res, status, payload) {

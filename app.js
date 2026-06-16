@@ -524,6 +524,7 @@ function getSelectedOptionText(select) {
 
 async function loadSupabaseData() {
   if (!supabase) {
+    await loadShipmentsFromApi();
     populateSubmissionOptions();
     return;
   }
@@ -544,14 +545,33 @@ async function loadSupabaseData() {
   cropOptions = crops.map((crop) => ({ id: crop.id, name: crop.name }));
   populateSubmissionOptions();
 
+  const apiLoaded = await loadShipmentsFromApi();
+  if (apiLoaded) return;
+
   if (rowsError) {
-    showToast("관리자 데이터는 로그인 후 Supabase에서 불러올 수 있습니다.");
+    showToast("관리자 데이터는 로그인 또는 서버 API 설정 후 Supabase에서 불러올 수 있습니다.");
     return;
   }
 
   shipments = rows.map(mapSheetRow);
   if (document.querySelector("#sheetView") && !document.querySelector("#sheetView").classList.contains("hidden")) {
     renderSheet();
+  }
+}
+
+async function loadShipmentsFromApi() {
+  try {
+    const response = await fetch("/api/shipments?date=2026-06-18");
+    if (!response.ok) return false;
+    const payload = await response.json();
+    if (!Array.isArray(payload.data) || payload.meta?.source === "mock") return false;
+    shipments = payload.data.map(mapSheetRow);
+    if (document.querySelector("#sheetView") && !document.querySelector("#sheetView").classList.contains("hidden")) {
+      renderSheet();
+    }
+    return true;
+  } catch {
+    return false;
   }
 }
 
