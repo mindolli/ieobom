@@ -52,9 +52,11 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxx
 
 ```env
 SUPABASE_SECRET_KEY=sb_secret_xxx
+EXTERNAL_API_KEY=replace-with-long-random-token
 ```
 
 `SUPABASE_SECRET_KEY`는 브라우저 코드에 넣으면 안 됩니다.
+`EXTERNAL_API_KEY`는 외부 ERP/정산 시스템이 `/api/*`를 호출할 때 쓰는 Bearer 토큰입니다.
 
 ## 4. Supabase 클라이언트 코드 예시
 
@@ -165,3 +167,23 @@ const { error } = await supabase
 - 관리자 셀 수정은 `shipments` 또는 `shipment_grade_estimates`에 저장
 
 남은 운영 작업은 관리자 로그인 UI 추가와 RLS 정책 검증입니다.
+
+## 9. 외부 API 사용
+
+Vercel 배포 후 아래 엔드포인트를 사용할 수 있습니다.
+
+| Method | Endpoint | 용도 |
+| --- | --- | --- |
+| `GET` | `/api/shipments?date=2026-06-18` | 출하 예정/확정 데이터 조회 |
+| `POST` | `/api/shipments` | 외부 입력 도구에서 출하 예정 등록 |
+| `GET` | `/api/issues?stage=sorting` | 확인 필요 데이터 조회 |
+| `GET` | `/api/settlements?date=2026-06-18` | 정산 기초자료 조회 |
+
+호출 예시:
+
+```bash
+curl -X GET "https://your-domain.vercel.app/api/shipments?date=2026-06-18" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+`EXTERNAL_API_KEY`를 Vercel에 설정하지 않으면 API 키 없이도 호출됩니다. 데모 중에는 편하지만 운영에서는 반드시 설정하세요.

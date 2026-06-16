@@ -41,4 +41,6 @@ Vercel에서는 Application/Framework Preset을 `Vite`로 선택하세요.
 - 엑셀 형태의 관리자 출하 데이터표
 - 표 셀 직접 수정, 상태 변경, 검색과 필터
 - 관리자 데이터표 CSV 내보내기
+- 외부 시스템 연동용 API 명세 화면
+- Vercel 서버리스 API 샘플 엔드포인트
 - 사이드바 화면 전환 및 모바일 레이아웃

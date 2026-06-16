@@ -330,6 +330,51 @@ tbody tr:last-child td { border-bottom: 0; }
 .sheet-tabs span { margin-left: auto; color: #969d99; font-size: 8px; }
 @keyframes newRowFlash { 0%, 45% { background: #dff1e6; } 100% { background: #f2faf5; } }
 
+/* API 연동 */
+.api-page { max-width: 1560px; }
+.api-hero { display: grid; grid-template-columns: 1fr 290px; gap: 22px; align-items: end; margin-bottom: 24px; }
+.api-hero h1 { margin: 0; color: var(--green-950); font-family: "Gowun Batang", serif; font-size: 38px; }
+.api-hero > div:first-child > p:last-child { max-width: 650px; margin: 10px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.api-status-card { padding: 18px; border: 1px solid #d8ddd7; border-radius: 13px; background: var(--paper); box-shadow: var(--shadow); }
+.api-status-card strong { display: block; margin-top: 10px; color: var(--green-950); font-size: 14px; }
+.api-status-card p { margin: 7px 0 0; color: #7a857f; font-size: 9px; line-height: 1.55; }
+.api-layout { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 16px; }
+.api-sidebar { display: flex; flex-direction: column; gap: 9px; }
+.api-endpoint { width: 100%; min-height: 84px; padding: 14px; border: 1px solid var(--line); border-radius: 11px; background: rgba(255,253,248,.82); text-align: left; cursor: pointer; transition: .2s; }
+.api-endpoint:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(31, 65, 52, .07); }
+.api-endpoint.active { border-color: #8fb09f; background: #eff6f1; box-shadow: inset 3px 0 var(--green-800); }
+.api-endpoint span, .method-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 42px; height: 22px; padding: 0 8px; border-radius: 6px; color: white; background: #3b8663; font-size: 8px; font-weight: 700; letter-spacing: .04em; }
+.api-endpoint span { margin-bottom: 9px; }
+.api-endpoint:nth-child(2) span, .method-badge.post { background: #bb7440; }
+.api-endpoint strong, .api-endpoint small { display: block; }
+.api-endpoint strong { color: var(--green-950); font-size: 12px; }
+.api-endpoint small { margin-top: 5px; color: #79857f; font-size: 8px; }
+.api-console { padding: 24px; border: 1px solid var(--line); border-radius: 13px; background: rgba(255,253,248,.95); box-shadow: var(--shadow); }
+.api-console-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.api-console-head h2 { margin: 11px 0 4px; color: var(--green-950); font-size: 20px; }
+.api-console-head p { margin: 0; color: #7f8883; font-size: 10px; }
+.method-badge.get { background: #3b8663; }
+.method-badge.post { background: #bb7440; }
+.api-url-box { display: grid; grid-template-columns: 70px 1fr; overflow: hidden; min-height: 44px; border: 1px solid #d8ddd7; border-radius: 9px; background: #f8faf7; }
+.api-url-box span { display: grid; place-items: center; color: white; background: var(--green-900); font-size: 10px; font-weight: 700; }
+.api-url-box code { display: flex; align-items: center; overflow-x: auto; padding: 0 14px; color: #415149; font-size: 11px; white-space: nowrap; }
+.api-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; margin-top: 14px; }
+.api-panel { overflow: hidden; border: 1px solid #d9ddd7; border-radius: 10px; background: #162820; }
+.api-panel-title { display: flex; align-items: center; justify-content: space-between; padding: 11px 13px; border-bottom: 1px solid rgba(255,255,255,.08); color: #e9f3ee; }
+.api-panel-title strong { font-size: 10px; }
+.api-panel-title span { color: #9bb0a7; font-size: 8px; }
+.api-panel pre { min-height: 290px; max-height: 360px; overflow: auto; margin: 0; padding: 15px; color: #dbe7df; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 10px; line-height: 1.6; }
+.api-field-table { overflow: hidden; margin-top: 14px; border: 1px solid #dce0da; border-radius: 10px; background: white; }
+.api-field-row { display: grid; grid-template-columns: 180px 120px 1fr; min-height: 38px; border-top: 1px solid #eef0ec; }
+.api-field-row:first-child { border-top: 0; }
+.api-field-row span { display: flex; align-items: center; padding: 0 13px; color: #59655f; font-size: 9px; }
+.api-field-head { background: #f3f5f1; font-weight: 700; }
+.api-field-head span { color: #303d37; }
+.api-note-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+.api-note-grid article { padding: 18px; border: 1px solid var(--line); border-radius: 11px; background: var(--paper); }
+.api-note-grid strong { display: block; color: var(--green-950); font-size: 12px; }
+.api-note-grid p { margin: 7px 0 0; color: #7c8580; font-size: 9px; line-height: 1.65; }
+
 /* 농가 제출 포털 */
 body.farmer-mode { background: #f2f0e7; }
 body.farmer-mode .app-shell { display: none; }
@@ -447,6 +492,9 @@ form input:focus, form select:focus, form textarea:focus { border-color: #7ba18f
   .content-grid { grid-template-columns: 1fr; }
   .schedule-panel { min-height: auto; }
   .farmer-main { gap: 35px; }
+  .api-layout { grid-template-columns: 1fr; }
+  .api-sidebar { display: grid; grid-template-columns: 1fr 1fr; }
+  .api-panels { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 760px) {
@@ -481,6 +529,12 @@ form input:focus, form select:focus, form textarea:focus { border-color: #7ba18f
   .farmer-intro h1 { margin-top: 18px; font-size: 36px; }
   .farmer-steps { display: none; }
   .farmer-form-card { padding: 28px 22px; }
+  .api-hero { grid-template-columns: 1fr; }
+  .api-sidebar { grid-template-columns: 1fr; }
+  .api-console-head { flex-direction: column; }
+  .api-url-box { grid-template-columns: 58px 1fr; }
+  .api-field-row { grid-template-columns: 110px 80px 1fr; }
+  .api-note-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 480px) {

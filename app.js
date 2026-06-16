@@ -162,8 +162,7 @@ document.querySelector("#resolveButton").addEventListener("click", () => {
 const genericCopy = {
   flow: ["출하 흐름", "예정부터 정산 준비까지 단계별 데이터 연결 상태를 확인합니다."],
   farmers: ["농가 관리", "참여 농가와 품목별 출하 이력을 관리합니다."],
-  settlement: ["정산 자료", "정산 가능 여부와 누락된 단가·비용 데이터를 확인합니다."],
-  api: ["API 연동", "농협, ERP, 엑셀 자동화 도구와의 데이터 연결 상태를 관리합니다."]
+  settlement: ["정산 자료", "정산 가능 여부와 누락된 단가·비용 데이터를 확인합니다."]
 };
 
 function changeView(view) {
@@ -173,10 +172,12 @@ function changeView(view) {
   document.querySelector("#farmerView").classList.toggle("hidden", !isFarmer);
   const isDashboard = view === "dashboard";
   const isSheet = view === "sheet";
+  const isApi = view === "api";
   document.querySelector("#dashboardView").classList.toggle("hidden", !isDashboard);
   document.querySelector("#sheetView").classList.toggle("hidden", !isSheet);
-  document.querySelector("#genericView").classList.toggle("hidden", isDashboard || isSheet || isFarmer);
-  if (!isDashboard && !isSheet && !isFarmer) {
+  document.querySelector("#apiView").classList.toggle("hidden", !isApi);
+  document.querySelector("#genericView").classList.toggle("hidden", isDashboard || isSheet || isFarmer || isApi);
+  if (!isDashboard && !isSheet && !isFarmer && !isApi) {
     const [title, description] = genericCopy[view];
     document.querySelector("#genericTitle").textContent = title;
     document.querySelector("#genericDescription").textContent = description;
@@ -189,6 +190,184 @@ function changeView(view) {
 document.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => changeView(button.dataset.view)));
 document.querySelectorAll("[data-view-link]").forEach((button) => button.addEventListener("click", () => changeView(button.dataset.viewLink)));
 document.querySelector(".mobile-menu").addEventListener("click", () => document.querySelector(".sidebar").classList.toggle("open"));
+
+const apiSpecs = {
+  shipments: {
+    method: "GET",
+    title: "출하 데이터 조회",
+    description: "날짜와 품목 기준으로 농가별 출하 예정 데이터를 가져옵니다.",
+    url: "https://your-domain.vercel.app/api/shipments?date=2026-06-18&crop=tomato",
+    request: {
+      headers: {
+        Authorization: "Bearer YOUR_API_KEY"
+      },
+      query: {
+        date: "2026-06-18",
+        crop: "tomato",
+        status: "submitted"
+      }
+    },
+    response: {
+      data: [
+        {
+          shipment_id: "shp_01J...",
+          farm_name: "김성호 농가",
+          crop_name: "방울토마토",
+          shipment_date: "2026-06-18",
+          total_boxes: 40,
+          grades: { special: 10, high: 20, normal: 10 },
+          arrival_method: "self_delivery",
+          requested_arrival_time: "09:00",
+          status: "submitted"
+        }
+      ],
+      meta: { count: 1 }
+    },
+    fields: [
+      ["shipment_id", "string", "출하 건 고유 ID"],
+      ["farm_name", "string", "농가명"],
+      ["total_boxes", "number", "총 예정 박스 수"],
+      ["grades", "object", "등급별 예정 수량"],
+      ["status", "string", "submitted, needs_check 등 상태값"]
+    ]
+  },
+  submit: {
+    method: "POST",
+    title: "출하 예정 등록",
+    description: "외부 입력 도구나 엑셀 자동화에서 농가 출하 예정 데이터를 등록합니다.",
+    url: "https://your-domain.vercel.app/api/shipments",
+    request: {
+      headers: {
+        Authorization: "Bearer YOUR_API_KEY",
+        "Content-Type": "application/json"
+      },
+      body: {
+        org_slug: "saebom",
+        farm_id: "farm_uuid",
+        crop_id: "crop_uuid",
+        shipment_date: "2026-06-18",
+        total_boxes: 40,
+        grade_boxes: { special: 10, high: 20, normal: 10 },
+        arrival_method: "self_delivery",
+        requested_arrival_time: "09:00",
+        contact_phone: "010-0000-0000",
+        farmer_memo: "오전 입고 예정"
+      }
+    },
+    response: {
+      shipment_id: "shp_01J...",
+      status: "submitted",
+      issue_created: false
+    },
+    fields: [
+      ["org_slug", "string", "공선출하회 식별자"],
+      ["farm_id", "uuid", "농가 ID"],
+      ["crop_id", "uuid", "품목 ID"],
+      ["grade_boxes", "object", "등급별 예정 수량"],
+      ["arrival_method", "string", "self_delivery 또는 pickup_request"]
+    ]
+  },
+  issues: {
+    method: "GET",
+    title: "확인 필요 데이터 조회",
+    description: "누락, 불일치, 중복, 미배분 등 담당자 조치가 필요한 항목을 조회합니다.",
+    url: "https://your-domain.vercel.app/api/issues?status=open",
+    request: {
+      headers: {
+        Authorization: "Bearer YOUR_API_KEY"
+      },
+      query: {
+        status: "open",
+        stage: "sorting"
+      }
+    },
+    response: {
+      data: [
+        {
+          issue_id: "iss_01J...",
+          stage: "sorting",
+          issue_type: "mismatch",
+          title: "입고량과 선별 결과 합계가 다릅니다.",
+          detail: { actual_boxes: 38, sorted_sum: 37 },
+          shipment_id: "shp_01J..."
+        }
+      ],
+      meta: { count: 1 }
+    },
+    fields: [
+      ["issue_id", "string", "확인 항목 ID"],
+      ["stage", "string", "shipment_plan, arrival, sorting 등 단계"],
+      ["issue_type", "string", "missing, mismatch, duplicate 등"],
+      ["detail", "object", "문제 판단에 사용된 값"],
+      ["shipment_id", "string", "연결된 출하 건 ID"]
+    ]
+  },
+  settlements: {
+    method: "GET",
+    title: "정산 기초자료 조회",
+    description: "정산 시스템이 농가별 확정 수량, 등급별 물량, 비용 항목을 가져갑니다.",
+    url: "https://your-domain.vercel.app/api/settlements?date=2026-06-18",
+    request: {
+      headers: {
+        Authorization: "Bearer YOUR_API_KEY"
+      },
+      query: {
+        date: "2026-06-18",
+        farm_id: "farm_uuid"
+      }
+    },
+    response: {
+      data: [
+        {
+          farm_name: "김성호 농가",
+          crop_name: "방울토마토",
+          confirmed_boxes: 37,
+          grade_boxes: { special: 8, high: 20, normal: 7, low: 2 },
+          fees: { sorting_fee: 12000, transport_fee: 8000, commission_fee: 3500 },
+          settlement_status: "settlement_ready"
+        }
+      ]
+    },
+    fields: [
+      ["confirmed_boxes", "number", "정산 대상 확정 수량"],
+      ["grade_boxes", "object", "등급별 확정 물량"],
+      ["fees", "object", "선별비, 운송비, 수수료"],
+      ["settlement_status", "string", "정산 가능/보류 상태"]
+    ]
+  }
+};
+
+function renderApiSpec(key = "shipments") {
+  const spec = apiSpecs[key];
+  document.querySelectorAll(".api-endpoint").forEach((button) => button.classList.toggle("active", button.dataset.apiEndpoint === key));
+  document.querySelector("#apiMethodBadge").textContent = spec.method;
+  document.querySelector("#apiMethodBadge").className = `method-badge ${spec.method.toLowerCase()}`;
+  document.querySelector("#apiTitle").textContent = spec.title;
+  document.querySelector("#apiDescription").textContent = spec.description;
+  document.querySelector("#apiMethodText").textContent = spec.method;
+  document.querySelector("#apiUrl").textContent = spec.url;
+  document.querySelector("#apiRequestCode").textContent = JSON.stringify(spec.request, null, 2);
+  document.querySelector("#apiResponseCode").textContent = JSON.stringify(spec.response, null, 2);
+  document.querySelector("#apiFieldRows").innerHTML = spec.fields
+    .map(([field, type, description]) => `<div class="api-field-row"><span>${field}</span><span>${type}</span><span>${description}</span></div>`)
+    .join("");
+}
+
+document.querySelectorAll(".api-endpoint").forEach((button) => {
+  button.addEventListener("click", () => renderApiSpec(button.dataset.apiEndpoint));
+});
+
+document.querySelector("#copyCurlButton").addEventListener("click", async () => {
+  const method = document.querySelector("#apiMethodText").textContent;
+  const url = document.querySelector("#apiUrl").textContent;
+  const request = JSON.parse(document.querySelector("#apiRequestCode").textContent);
+  const body = request.body ? ` \\\n  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(request.body)}'` : "";
+  const curl = `curl -X ${method} "${url}" \\\n  -H "Authorization: Bearer YOUR_API_KEY"${body}`;
+  if (navigator.clipboard) {
+    await navigator.clipboard.writeText(curl);
+  }
+  showToast("API 호출 예시를 복사했습니다.");
+});
 
 const entryModal = document.querySelector("#entryModal");
 const entryBackdrop = document.querySelector("#entryBackdrop");
@@ -682,4 +861,5 @@ document.addEventListener("keydown", (event) => {
 });
 
 renderIssues();
+renderApiSpec();
 loadSupabaseData();
