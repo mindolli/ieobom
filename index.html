@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="공선출하회 출하, 입고, 선별, 배분, 정산 데이터를 한 흐름으로 관리하는 운영 프로토타입"
+    />
+    <title>이어봄 | 공선출하회 운영 데이터</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#" aria-label="이어봄 홈">
+          <span class="brand-mark" aria-hidden="true">
+            <i></i><i></i><i></i>
+          </span>
+          <span>
+            <strong>이어봄</strong>
+            <small>공선출하회 운영 데이터</small>
+          </span>
+        </a>
+
+        <nav class="main-nav" aria-label="주 메뉴">
+          <p>운영</p>
+          <button class="nav-item active" data-view="dashboard">
+            <span class="nav-icon" data-icon="grid"></span>
+            오늘의 현황
+          </button>
+          <button class="nav-item" data-view="flow">
+            <span class="nav-icon" data-icon="flow"></span>
+            출하 흐름
+          </button>
+          <button class="nav-item" data-view="farmers">
+            <span class="nav-icon" data-icon="users"></span>
+            농가 관리
+          </button>
+          <button class="nav-item" data-view="sheet">
+            <span class="nav-icon" data-icon="sheet"></span>
+            출하 데이터표
+          </button>
+          <button class="nav-item" data-view="settlement">
+            <span class="nav-icon" data-icon="receipt"></span>
+            정산 자료
+          </button>
+          <p>연결</p>
+          <button class="nav-item" data-view="farmer">
+            <span class="nav-icon" data-icon="send"></span>
+            농가 제출 화면
+          </button>
+          <button class="nav-item" data-view="api">
+            <span class="nav-icon" data-icon="link"></span>
+            API 연동
+            <span class="nav-badge">3</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-help">
+          <span class="help-icon">?</span>
+          <strong>도움이 필요하신가요?</strong>
+          <p>운영 데이터 입력과 연동 방법을 확인하세요.</p>
+          <button>이용 안내 보기</button>
+        </div>
+
+        <div class="profile">
+          <span class="avatar">이</span>
+          <span><strong>이민수 담당자</strong><small>새봄 공선출하회</small></span>
+          <button aria-label="프로필 메뉴">•••</button>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <button class="mobile-menu" aria-label="메뉴 열기">☰</button>
+          <div class="date-control">
+            <button aria-label="이전 날짜">‹</button>
+            <button class="date-main">
+              <span class="nav-icon" data-icon="calendar"></span>
+              2026년 6월 18일 목요일
+            </button>
+            <button aria-label="다음 날짜">›</button>
+          </div>
+          <div class="top-actions">
+            <label class="search">
+              <span class="nav-icon" data-icon="search"></span>
+              <input id="globalSearch" type="search" placeholder="농가, 품목 검색" />
+              <kbd>⌘ K</kbd>
+            </label>
+            <button class="icon-button notification" aria-label="알림">
+              <span class="nav-icon" data-icon="bell"></span>
+              <i></i>
+            </button>
+          </div>
+        </header>
+
+        <section class="page" id="dashboardView">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">GOOD MORNING</p>
+              <h1>오늘도 데이터가<br />잘 이어지고 있어요.</h1>
+            </div>
+            <div class="heading-actions">
+              <button class="button secondary" id="downloadButton">
+                <span class="nav-icon" data-icon="download"></span>
+                오늘 자료 내보내기
+              </button>
+              <button class="button primary" id="newEntryButton">
+                <span>＋</span>
+                입고·선별 등록
+              </button>
+            </div>
+          </div>
+
+          <div class="summary-grid">
+            <article class="summary-card accent">
+              <div class="summary-top">
+                <span class="summary-icon"><span class="nav-icon" data-icon="truck"></span></span>
+                <span class="trend">어제보다 12% ↑</span>
+              </div>
+              <p>오늘 출하 예정</p>
+              <div><strong>328</strong><span>박스</span></div>
+              <small>14개 농가 · 3개 품목</small>
+            </article>
+            <article class="summary-card">
+              <div class="summary-top">
+                <span class="summary-icon coral"><span class="nav-icon" data-icon="check"></span></span>
+                <span class="tag">진행 중</span>
+              </div>
+              <p>입고 완료</p>
+              <div><strong>214</strong><span>박스</span></div>
+              <div class="progress"><i style="width: 65%"></i></div>
+              <small>전체 예정량의 65%</small>
+            </article>
+            <article class="summary-card">
+              <div class="summary-top">
+                <span class="summary-icon gold"><span class="nav-icon" data-icon="layers"></span></span>
+                <span class="tag">8건 완료</span>
+              </div>
+              <p>선별 완료</p>
+              <div><strong>176</strong><span>박스</span></div>
+              <div class="progress gold"><i style="width: 53%"></i></div>
+              <small>입고량의 82%</small>
+            </article>
+            <article class="summary-card attention">
+              <div class="summary-top">
+                <span class="summary-icon red"><span class="nav-icon" data-icon="alert"></span></span>
+                <span class="attention-label">조치 필요</span>
+              </div>
+              <p>확인 필요</p>
+              <div><strong id="issueCount">5</strong><span>건</span></div>
+              <small id="issueSummary">누락 2 · 불일치 2 · 미배분 1</small>
+            </article>
+          </div>
+
+          <div class="content-grid">
+            <section class="panel flow-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-label">TODAY'S FLOW</p>
+                  <h2>오늘의 출하 흐름</h2>
+                </div>
+                <button class="text-button" data-view-link="flow">전체 흐름 보기 <span>→</span></button>
+              </div>
+
+              <div class="flow-visual">
+                <div class="flow-line"><i style="width: 70%"></i></div>
+                <div class="flow-step done">
+                  <span class="step-dot"><span class="nav-icon" data-icon="calendar"></span></span>
+                  <strong>출하 예정</strong>
+                  <b>328</b><small>박스</small>
+                  <em>14 농가</em>
+                </div>
+                <div class="flow-step done">
+                  <span class="step-dot"><span class="nav-icon" data-icon="truck"></span></span>
+                  <strong>입고</strong>
+                  <b>214</b><small>박스</small>
+                  <em>10 농가</em>
+                </div>
+                <div class="flow-step current">
+                  <span class="step-dot"><span class="nav-icon" data-icon="layers"></span></span>
+                  <strong>선별</strong>
+                  <b>176</b><small>박스</small>
+                  <em>8 농가</em>
+                </div>
+                <div class="flow-step">
+                  <span class="step-dot"><span class="nav-icon" data-icon="split"></span></span>
+                  <strong>배분</strong>
+                  <b>142</b><small>박스</small>
+                  <em>6 농가</em>
+                </div>
+                <div class="flow-step">
+                  <span class="step-dot"><span class="nav-icon" data-icon="receipt"></span></span>
+                  <strong>정산 준비</strong>
+                  <b>98</b><small>박스</small>
+                  <em>4 농가</em>
+                </div>
+              </div>
+
+              <div class="flow-note">
+                <span class="pulse"></span>
+                <p><strong>지금은 선별 단계가 가장 활발해요.</strong><br />입고 완료 10건 중 8건의 선별이 끝났습니다.</p>
+                <span>82%</span>
+              </div>
+            </section>
+
+            <section class="panel schedule-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-label">ARRIVAL SCHEDULE</p>
+                  <h2>입고 예정</h2>
+                </div>
+                <button class="more-button" aria-label="더 보기">•••</button>
+              </div>
+              <div class="schedule-list">
+                <article>
+                  <time>09:00</time>
+                  <span class="time-line"><i></i></span>
+                  <div>
+                    <strong>김성호 농가</strong>
+                    <p>방울토마토 · 40박스</p>
+                  </div>
+                  <span class="method self">자가입고</span>
+                </article>
+                <article>
+                  <time>09:30</time>
+                  <span class="time-line"><i></i></span>
+                  <div>
+                    <strong>박영자 농가</strong>
+                    <p>완숙토마토 · 28박스</p>
+                  </div>
+                  <span class="method pickup">수거</span>
+                </article>
+                <article>
+                  <time>10:20</time>
+                  <span class="time-line"><i></i></span>
+                  <div>
+                    <strong>이재훈 농가</strong>
+                    <p>방울토마토 · 36박스</p>
+                  </div>
+                  <span class="method self">자가입고</span>
+                </article>
+                <article>
+                  <time>11:00</time>
+                  <span class="time-line"><i></i></span>
+                  <div>
+                    <strong>최은경 농가</strong>
+                    <p>대추방울 · 24박스</p>
+                  </div>
+                  <span class="method pickup">수거</span>
+                </article>
+              </div>
+              <button class="schedule-more">오후 입고 6건 더 보기 <span>⌄</span></button>
+            </section>
+          </div>
+
+          <section class="panel issues-panel">
+            <div class="panel-heading">
+              <div>
+                <div class="heading-with-badge">
+                  <p class="section-label">NEEDS ATTENTION</p>
+                  <span id="headingIssueCount">5건</span>
+                </div>
+                <h2>확인이 필요한 데이터</h2>
+                <p>다음 단계로 넘어가기 전에 확인해주세요.</p>
+              </div>
+              <div class="issue-filters" role="group" aria-label="이슈 필터">
+                <button class="active" data-filter="all">전체 <span data-filter-count="all">5</span></button>
+                <button data-filter="누락">누락 <span data-filter-count="누락">2</span></button>
+                <button data-filter="불일치">불일치 <span data-filter-count="불일치">2</span></button>
+                <button data-filter="미배분">미배분 <span data-filter-count="미배분">1</span></button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>단계</th><th>농가</th><th>품목</th><th>확인할 내용</th><th>상태</th><th></th>
+                  </tr>
+                </thead>
+                <tbody id="issueTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <footer class="dashboard-footer">
+            <p><span class="status-dot"></span> 마지막 데이터 동기화: 오늘 10:42</p>
+            <p>새봄 공선출하회 · 2026년 여름 작기</p>
+          </footer>
+        </section>
+
+        <section class="page hidden" id="genericView">
+          <div class="empty-state">
+            <span class="empty-icon"></span>
+            <p class="eyebrow">PROTOTYPE VIEW</p>
+            <h1 id="genericTitle">출하 흐름</h1>
+            <p id="genericDescription">오늘의 출하 데이터를 단계별로 확인합니다.</p>
+            <button class="button primary" data-view-link="dashboard">오늘의 현황으로 돌아가기</button>
+          </div>
+        </section>
+
+        <section class="page sheet-page hidden" id="sheetView">
+          <div class="sheet-heading">
+            <div>
+              <p class="eyebrow">SHIPMENT DATA</p>
+              <h1>출하 예정 데이터표</h1>
+              <p>농가에서 보낸 데이터를 한 표에서 확인하고 바로 수정할 수 있습니다.</p>
+            </div>
+            <div class="heading-actions">
+              <button class="button secondary" id="sheetDownloadButton">
+                <span class="nav-icon" data-icon="download"></span>
+                엑셀용 CSV
+              </button>
+              <button class="button primary" id="addSheetRowButton">＋ 빈 행 추가</button>
+            </div>
+          </div>
+
+          <div class="sheet-summary">
+            <article><span>제출 농가</span><strong id="sheetFarmCount">0</strong><small>곳</small></article>
+            <article><span>총 예정 수량</span><strong id="sheetTotalCount">0</strong><small>박스</small></article>
+            <article><span>확인 필요</span><strong id="sheetCheckCount">0</strong><small>건</small></article>
+            <article><span>마지막 제출</span><strong id="sheetLastTime">-</strong><small>기준</small></article>
+          </div>
+
+          <section class="spreadsheet">
+            <div class="sheet-toolbar">
+              <div class="sheet-name">
+                <span class="sheet-file-icon"><span class="nav-icon" data-icon="sheet"></span></span>
+                <div><strong>2026년 6월 출하 예정표</strong><small>자동 저장됨</small></div>
+              </div>
+              <div class="sheet-tools">
+                <label class="sheet-search">
+                  <span class="nav-icon" data-icon="search"></span>
+                  <input id="sheetSearch" type="search" placeholder="농가명 또는 품목 검색" />
+                </label>
+                <select id="sheetStatusFilter" aria-label="상태 필터">
+                  <option value="all">모든 상태</option>
+                  <option value="확인 완료">확인 완료</option>
+                  <option value="확인 필요">확인 필요</option>
+                  <option value="미확인">미확인</option>
+                </select>
+              </div>
+            </div>
+            <div class="formula-bar">
+              <span id="selectedCellName">A1</span>
+              <b>fx</b>
+              <input id="formulaInput" aria-label="선택한 셀 값" readonly value="농가명" />
+            </div>
+            <div class="sheet-table-wrap">
+              <table class="sheet-table" id="shipmentSheet">
+                <thead>
+                  <tr class="column-letters">
+                    <th class="corner"></th>
+                    <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th><th>K</th><th>L</th>
+                  </tr>
+                  <tr>
+                    <th class="row-number">1</th>
+                    <th>농가명</th><th>출하일</th><th>품목</th><th>총수량</th><th>특</th><th>상</th><th>보통</th><th>입고방식</th><th>희망시간</th><th>연락처</th><th>상태</th><th>메모</th>
+                  </tr>
+                </thead>
+                <tbody id="sheetBody"></tbody>
+                <tfoot id="sheetFoot"></tfoot>
+              </table>
+            </div>
+            <div class="sheet-tabs">
+              <button>＋</button>
+              <button class="active">6월 18일 출하</button>
+              <button>농가 목록</button>
+              <span>행을 클릭하면 셀을 직접 수정할 수 있습니다.</span>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <section class="farmer-portal hidden" id="farmerView">
+      <header class="farmer-header">
+        <a class="farmer-brand" href="#" data-view-link="farmer">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span><strong>이어봄</strong><small>새봄 공선출하회</small></span>
+        </a>
+        <button class="farmer-admin-link" data-view-link="dashboard">
+          관리자 화면 <span>→</span>
+        </button>
+      </header>
+      <main class="farmer-main">
+        <div class="farmer-intro">
+          <span class="farmer-date">6월 18일 목요일 출하</span>
+          <h1>내일 출하할 물량을<br />알려주세요.</h1>
+          <p>예상 수량만 간단히 적어주시면<br />공선회 담당자에게 바로 전달됩니다.</p>
+          <div class="farmer-steps">
+            <span class="active">1</span><i></i><span>2</span><i></i><span>3</span>
+            <small>기본 정보</small><small>수량 입력</small><small>제출 완료</small>
+          </div>
+        </div>
+
+        <section class="farmer-form-card">
+          <div class="farmer-form-heading">
+            <span class="form-step-number">01</span>
+            <div><h2>출하 정보를 입력해주세요</h2><p>필수 항목만 입력하면 됩니다.</p></div>
+          </div>
+          <form id="farmerShipmentForm">
+            <div class="farmer-field-row">
+              <label>농가명 <em>필수</em>
+                <select id="farmerName" required>
+                  <option value="">농가를 선택해주세요</option>
+                  <option>김성호 농가</option><option>박영자 농가</option><option>이재훈 농가</option><option>최은경 농가</option><option>정미숙 농가</option>
+                </select>
+              </label>
+              <label>연락처
+                <input id="farmerPhone" type="tel" placeholder="010-0000-0000" />
+              </label>
+            </div>
+            <div class="farmer-field-row">
+              <label>출하일 <em>필수</em>
+                <input id="shipmentDate" type="date" value="2026-06-18" required />
+              </label>
+              <label>품목 <em>필수</em>
+                <select id="shipmentCrop" required>
+                  <option value="">품목을 선택해주세요</option>
+                  <option>방울토마토</option><option>완숙토마토</option><option>대추방울</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="form-divider"></div>
+            <div class="farmer-form-heading compact">
+              <span class="form-step-number">02</span>
+              <div><h2>예정 수량을 알려주세요</h2><p>정확하지 않아도 괜찮습니다.</p></div>
+            </div>
+            <label class="quantity-main">총 예정 수량 <em>필수</em>
+              <div><button type="button" data-quantity="-1">−</button><input id="totalQuantity" type="number" value="40" min="1" required /><span>박스</span><button type="button" data-quantity="1">＋</button></div>
+            </label>
+            <div class="grade-entry">
+              <div class="grade-title"><strong>등급별 예정 수량</strong><span>선택 입력</span></div>
+              <div class="grade-entry-grid">
+                <label>특<div><input id="gradeSpecial" type="number" value="10" min="0" /><span>박스</span></div></label>
+                <label>상<div><input id="gradeHigh" type="number" value="20" min="0" /><span>박스</span></div></label>
+                <label>보통<div><input id="gradeNormal" type="number" value="10" min="0" /><span>박스</span></div></label>
+              </div>
+              <p id="gradeCheck" class="grade-check ok">✓ 등급별 합계가 총 예정 수량과 같아요.</p>
+            </div>
+
+            <div class="form-divider"></div>
+            <div class="farmer-field-row">
+              <fieldset class="arrival-method">
+                <legend>입고 방식 <em>필수</em></legend>
+                <label><input type="radio" name="arrivalMethod" value="자가입고" checked /><span class="method-card"><b>직접 가져갈게요</b><small>자가입고</small></span></label>
+                <label><input type="radio" name="arrivalMethod" value="수거 요청" /><span class="method-card"><b>수거가 필요해요</b><small>수거 요청</small></span></label>
+              </fieldset>
+              <label>희망 입고 시간
+                <select id="arrivalTime"><option>오전 9시</option><option>오전 10시</option><option>오전 11시</option><option>오후 1시</option><option>오후 2시</option></select>
+              </label>
+            </div>
+            <label>담당자에게 전할 말
+              <textarea id="farmerMemo" placeholder="수거 위치나 참고할 내용을 적어주세요."></textarea>
+            </label>
+            <button class="farmer-submit" type="submit">출하 예정 정보 보내기 <span>→</span></button>
+            <p class="privacy-note">입력한 정보는 새봄 공선출하회 담당자에게만 전달됩니다.</p>
+          </form>
+        </section>
+      </main>
+    </section>
+
+    <div class="submission-success hidden" id="submissionSuccess">
+      <div class="success-card">
+        <span class="success-check">✓</span>
+        <p class="eyebrow">SUBMITTED</p>
+        <h2>출하 예정 정보가<br />잘 전달됐어요.</h2>
+        <p id="successSummary"></p>
+        <button class="button primary full" id="checkAdminSheet">관리자 데이터표에서 확인</button>
+        <button class="text-button" id="submitAnother">다른 출하 정보 입력</button>
+      </div>
+    </div>
+
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+    <aside class="drawer" id="issueDrawer" aria-hidden="true">
+      <button class="drawer-close" id="drawerClose" aria-label="닫기">×</button>
+      <p class="section-label">DATA CHECK</p>
+      <h2 id="drawerTitle">데이터 확인</h2>
+      <div class="drawer-farm">
+        <span class="avatar" id="drawerAvatar">김</span>
+        <div><strong id="drawerFarmer">김성호 농가</strong><p id="drawerCrop">방울토마토</p></div>
+      </div>
+      <div class="drawer-status" id="drawerStatus"></div>
+      <div class="drawer-details" id="drawerDetails"></div>
+      <label class="drawer-note">
+        담당자 메모
+        <textarea placeholder="확인한 내용을 남겨주세요."></textarea>
+      </label>
+      <button class="button primary full" id="resolveButton">확인 완료로 처리</button>
+    </aside>
+
+    <div class="modal-backdrop" id="entryBackdrop"></div>
+    <section class="entry-modal" id="entryModal" aria-hidden="true">
+      <div class="modal-header">
+        <div>
+          <p class="section-label">NEW RECORD</p>
+          <h2>입고·선별 데이터 등록</h2>
+        </div>
+        <button id="entryClose" aria-label="닫기">×</button>
+      </div>
+      <div class="mode-tabs">
+        <button class="active" data-mode="arrival">입고 등록</button>
+        <button data-mode="sorting">선별 결과</button>
+      </div>
+      <form id="entryForm">
+        <div class="field-row">
+          <label>농가<select required><option value="">농가 선택</option><option>김성호 농가</option><option>박영자 농가</option><option>이재훈 농가</option><option>최은경 농가</option></select></label>
+          <label>품목<select required><option>방울토마토</option><option>완숙토마토</option><option>대추방울</option></select></label>
+        </div>
+        <div id="arrivalFields">
+          <div class="field-row">
+            <label>실제 입고 수량<div class="input-unit"><input type="number" value="40" min="0" /><span>박스</span></div></label>
+            <label>입고 시간<input type="time" value="09:00" /></label>
+          </div>
+          <label>특이사항<textarea placeholder="예정과 다른 점이 있다면 입력해주세요."></textarea></label>
+        </div>
+        <div id="sortingFields" class="hidden">
+          <div class="grade-grid">
+            <label>특<input type="number" value="8" min="0" /></label>
+            <label>상<input type="number" value="20" min="0" /></label>
+            <label>보통<input type="number" value="7" min="0" /></label>
+            <label>하품<input type="number" value="2" min="0" /></label>
+            <label>감모<input type="number" value="1" min="0" /></label>
+          </div>
+          <div class="sum-check"><span>선별 결과 합계</span><strong id="sortingSum">38 박스</strong></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="button secondary" id="entryCancel">취소</button>
+          <button type="submit" class="button primary">데이터 저장</button>
+        </div>
+      </form>
+    </section>
+
+    <div class="toast" id="toast"><span>✓</span><p></p></div>
+    <script src="./app.js"></script>
+  </body>
+</html>
